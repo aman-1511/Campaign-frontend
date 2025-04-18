@@ -6,8 +6,12 @@ services:
     staticPublishPath: ./build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://18.206.140.165:5001/api
+        value: http://18.206.140.165:5001/api
     routes:
       - type: rewrite
         source: /*
-        destination: /index.html 
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Content-Security-Policy
+        value: "upgrade-insecure-requests" 
