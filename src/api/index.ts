@@ -4,14 +4,34 @@ import { Campaign, CampaignFormData, LinkedInProfile, PersonalizedMessage, Lead 
 // const LINKEDIN_EMAIL = 'aman212343221@gmail.com';
 // const LINKEDIN_PASSWORD = 'Chaudhary@1212';
 
-// Use environment variable or fallback
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://18.206.140.165:5001/api'; // Use port 5001 and add /api
+// Hardcode the API URL to ensure HTTP is used
+const API_BASE_URL = 'http://18.206.140.165:5001/api';
 
+// Create axios instance with configurations to handle mixed content
 const api = axios.create({
-  baseURL: API_BASE_URL, // Use the corrected base URL
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Add request interceptor to handle mixed content issues
+api.interceptors.request.use((config) => {
+  // For deployed environments, if we detect we're on HTTPS but calling HTTP
+  if (window.location.protocol === 'https:' && config.url?.startsWith('http:')) {
+    console.log('Detected mixed content request, attempting to fix:', config.url);
+    
+    // Try to use relative URL instead which will inherit the protocol
+    if (config.url.includes('18.206.140.165:5001')) {
+      // Extract just the path part
+      const urlParts = config.url.split('18.206.140.165:5001');
+      if (urlParts.length > 1) {
+        config.url = urlParts[1];
+        console.log('Using relative URL instead:', config.url);
+      }
+    }
+  }
+  return config;
 });
 
 // Campaign API calls - endpoints are now relative to the baseURL
