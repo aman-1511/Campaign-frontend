@@ -6,7 +6,7 @@ services:
     staticPublishPath: ./build
     envVars:
       - key: REACT_APP_API_URL
-        value: http://18.206.140.165:5001/api
+        value: https://18.206.140.165:5001/api
     routes:
       - type: rewrite
         source: /*
