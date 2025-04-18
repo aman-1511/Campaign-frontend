@@ -4,10 +4,10 @@ import { Campaign, CampaignFormData, LinkedInProfile, PersonalizedMessage, Lead 
 // const LINKEDIN_EMAIL = 'aman212343221@gmail.com';
 // const LINKEDIN_PASSWORD = 'Chaudhary@1212';
 
-// Hardcode the API URL to ensure HTTP is used
+// Explicitly use HTTP protocol
 const API_BASE_URL = 'http://18.206.140.165:5001/api';
 
-// Create axios instance with configurations to handle mixed content
+// Create axios instance with configurations for mixed content
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -15,29 +15,30 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to handle mixed content issues
-api.interceptors.request.use((config) => {
-  // For deployed environments, if we detect we're on HTTPS but calling HTTP
-  if (window.location.protocol === 'https:' && config.url?.startsWith('http:')) {
-    console.log('Detected mixed content request, attempting to fix:', config.url);
-    
-    // Try to use relative URL instead which will inherit the protocol
-    if (config.url.includes('18.206.140.165:5001')) {
-      // Extract just the path part
-      const urlParts = config.url.split('18.206.140.165:5001');
-      if (urlParts.length > 1) {
-        config.url = urlParts[1];
-        console.log('Using relative URL instead:', config.url);
-      }
-    }
+// This is a workaround for the mixed content issue with Render
+// We'll use a simple proxy approach for the deployed version
+// Create a function to determine if we need to use the proxy
+const getApiUrl = (endpoint: string) => {
+  // When in development, use the direct URL
+  if (window.location.hostname === 'localhost') {
+    return `${API_BASE_URL}${endpoint}`;
   }
-  return config;
-});
+  
+  // When deployed on Render with HTTPS, try to use relative URLs
+  // which will inherit the current protocol (HTTPS)
+  return endpoint;
+};
 
-// Campaign API calls - endpoints are now relative to the baseURL
+// Campaign API calls with the proxy approach
 export const getCampaigns = async (): Promise<Campaign[]> => {
-  const response = await api.get('/campaigns'); // Now hits http://localhost:5001/api/campaigns
-  return response.data;
+  try {
+    // Try direct approach first
+    const response = await axios.get(`${API_BASE_URL}/campaigns`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching campaigns:', error);
+    throw error;
+  }
 };
 
 export const getCampaign = async (id: string): Promise<Campaign> => {
