@@ -4,41 +4,20 @@ import { Campaign, CampaignFormData, LinkedInProfile, PersonalizedMessage, Lead 
 // const LINKEDIN_EMAIL = 'aman212343221@gmail.com';
 // const LINKEDIN_PASSWORD = 'Chaudhary@1212';
 
-// Explicitly use HTTP protocol
-const API_BASE_URL = 'http://18.206.140.165:5001/api';
+// Use environment variable or fallback
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://18.206.140.165:5001/api'; // Use port 5001 and add /api
 
-// Create axios instance with configurations for mixed content
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL, // Use the corrected base URL
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// This is a workaround for the mixed content issue with Render
-// We'll use a simple proxy approach for the deployed version
-// Create a function to determine if we need to use the proxy
-const getApiUrl = (endpoint: string) => {
-  // When in development, use the direct URL
-  if (window.location.hostname === 'localhost') {
-    return `${API_BASE_URL}${endpoint}`;
-  }
-  
-  // When deployed on Render with HTTPS, try to use relative URLs
-  // which will inherit the current protocol (HTTPS)
-  return endpoint;
-};
-
-// Campaign API calls with the proxy approach
+// Campaign API calls - endpoints are now relative to the baseURL
 export const getCampaigns = async (): Promise<Campaign[]> => {
-  try {
-    // Try direct approach first
-    const response = await axios.get(`${API_BASE_URL}/campaigns`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching campaigns:', error);
-    throw error;
-  }
+  const response = await api.get('/campaigns'); // Now hits http://localhost:5001/api/campaigns
+  return response.data;
 };
 
 export const getCampaign = async (id: string): Promise<Campaign> => {
